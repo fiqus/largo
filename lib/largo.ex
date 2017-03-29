@@ -1,4 +1,4 @@
-defmodule SlackIntegration do
+defmodule Largo do
   use Slack
 
   def handle_connect(slack, state) do
@@ -34,14 +34,14 @@ defmodule SlackIntegration do
     end
     {:ok, state}
   end
-  
+
   def handle_event(_, _, state), do: {:ok, state}
-  
-  @responders [SlackIntegration.HelloResponder, 
-               SlackIntegration.MemmoryResponder]
+
+  @responders [Largo.Responders.HelloResponder,
+               Largo.Responders.MemmoryResponder]
 
   defp respond(text, channel, slack) do
-    resp = Enum.reduce_while(@responders, "", fn responder, acc -> 
+    resp = Enum.reduce_while(@responders, "", fn responder, _acc ->
       case responder.respond(text) do
         {:ok, response} ->
           {:halt, response}

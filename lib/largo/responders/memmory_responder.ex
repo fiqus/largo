@@ -1,7 +1,7 @@
-defmodule SlackIntegration.MemmoryResponder do
-  @behaviour SlackIntegration.Responder
-  alias Database.{Value, Repo}
-  import Ecto.Query 
+defmodule Largo.Responders.MemmoryResponder do
+  @behaviour Largo.Responders.Responder
+  alias Largo.{Value, Repo}
+  import Ecto.Query
 
   @matchers [
     {~r/Guard[aá]\s+(?<key>.+)[=:](?<value>.+)$/iu, :save},
@@ -12,7 +12,7 @@ defmodule SlackIntegration.MemmoryResponder do
 
   def respond(message) do
     case parse(message) do
-      {:save, %{"key" => key, "value" => value} = captures} ->
+      {:save, %{"key" => key, "value" => value}} ->
         save(key, value)
       {:list, %{}} ->
         list()
@@ -25,7 +25,7 @@ defmodule SlackIntegration.MemmoryResponder do
   end
 
   defp parse(message) do
-    Enum.reduce_while(@matchers, false, fn {re, name}, acc -> 
+    Enum.reduce_while(@matchers, false, fn {re, name}, _acc ->
       case Regex.named_captures(re, message) do
         nil -> {:cont, nil}
         captures -> {:halt, {name, captures}}
@@ -78,5 +78,5 @@ defmodule SlackIntegration.MemmoryResponder do
     key
       |> String.trim()
       |> String.capitalize()
-  end 
+  end
 end

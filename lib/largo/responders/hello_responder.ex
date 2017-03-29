@@ -1,6 +1,6 @@
-defmodule SlackIntegration.HelloResponder do
-  @behaviour SlackIntegration.Responder
-  
+defmodule Largo.Responders.HelloResponder do
+  @behaviour Largo.Responders.Responder
+
   @matchers [
     ~r/Hola/iu,
     ~r/Buen(os)? d[íi]as?/iu
@@ -15,7 +15,7 @@ defmodule SlackIntegration.HelloResponder do
   end
 
   defp should_respond?(message) do
-    Enum.reduce_while(@matchers, false, fn re, acc -> 
+    Enum.reduce_while(@matchers, false, fn re, _acc ->
       case Regex.run(re, message) do
         nil -> {:cont, false}
         _ -> {:halt, true}

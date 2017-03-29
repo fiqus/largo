@@ -1,6 +1,6 @@
-defmodule DatabaseTest do
+defmodule LargoTest do
   use ExUnit.Case
-  doctest Database
+  doctest Largo
 
   test "the truth" do
     assert 1 + 1 == 2

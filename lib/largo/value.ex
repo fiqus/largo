@@ -1,4 +1,4 @@
-defmodule Database.Value do
+defmodule Largo.Value do
   use Ecto.Schema
   import Ecto.Changeset
 
