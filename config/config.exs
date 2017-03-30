@@ -13,6 +13,9 @@ config :largo, Largo.Repo,
 config :largo, ecto_repos: [Database.Repo]
 
 
+# redefine in <env>.secret.exs
+config :slack, api_token: ""
+
 configs = ["#{Mix.env}.exs", "#{Mix.env}.secret.exs"]
 
 Enum.map(configs, fn f ->

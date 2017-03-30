@@ -1,3 +1,4 @@
 use Mix.Config
 
-config :slack, api_token: "FAKE_TOKEN"
+#we don't want to start the websocket client when testing
+config :largo, enable_ws_client: false

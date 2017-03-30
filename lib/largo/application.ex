@@ -9,12 +9,15 @@ defmodule Largo.Application do
     import Supervisor.Spec, warn: false
 
     # Define workers and child supervisors to be supervised
-    children = [
-      # Starts a worker by calling: Largo.Worker.start_link(arg1, arg2, arg3)
-      # worker(Largo.Worker, [arg1, arg2, arg3]),
-      supervisor(Largo.Repo, []),
-      worker(Slack.Bot, [Largo, [], Application.get_env(:slack, :api_token)])
-    ]
+    default_workers = [ supervisor(Largo.Repo, [])]
+
+    slack_workers = if Application.get_env(:largo, :enable_ws_client, true) do
+      [worker(Slack.Bot, [Largo, [], Application.get_env(:slack, :api_token)])]
+    else
+      []
+    end
+
+    children = default_workers ++ slack_workers
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
