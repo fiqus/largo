@@ -36,27 +36,27 @@ defmodule Largo.Responders.MemmoryResponder do
   defp get(key) do
     key = clean_key(key)
     case Ecto.Query.from(v in Value, where: v.key == ^key) |> Repo.one do
-      nil -> {:ok, "No encontré la clave #{key}"}
-      value -> {:ok, "• #{value.key}: #{value.value}"}
+      nil -> {:ok, build_colored_message("No encontré la clave #{key}", "warn")}
+      value -> {:ok, build_kv_message([{value.key, value.value}], "hmmmmmmm", "good")}
     end
   end
 
   defp delete(key) do
     key = clean_key(key)
     case Ecto.Query.from(v in Value, where: v.key == ^key) |> Repo.one do
-      nil -> {:ok, "No encontré la clave #{key}"}
+      nil -> {:ok, build_colored_message("No encontré la clave #{key}", "warning")}
       value ->
         case Repo.delete(value) do
-          {:error, _} -> {:ok, "No pude borrar la clave #{key}"}
-          {:ok, value} -> {:ok, "Borré la clave #{value.key}. Último valor: #{value.value}"}
+          {:error, _} -> {:ok, build_colored_message("No pude borrar la clave #{key}", "danger")}
+          {:ok, value} -> {:ok, build_colored_message("Borré la clave #{value.key}. Último valor: #{value.value}", "good")}
         end
     end
   end
 
   defp list do
     msg = Repo.all(Value)
-      |> Enum.map(&"• *#{&1.key}*: #{&1.value}")
-      |> Enum.join("\n")
+      |> Enum.map(&{&1.key, &1.value})
+      |> build_kv_message("*hmmmmm*", "good")
     {:ok, msg}
   end
 
@@ -66,13 +66,34 @@ defmodule Largo.Responders.MemmoryResponder do
       nil ->
         Value.changeset(%Value{}, %{key: key, value: String.trim(value)})
         |> Repo.insert!
-        {:ok, "guardado!"}
+        {:ok, build_colored_message("guardado...", "good")}
       db_val ->
         Value.changeset(db_val, %{value: String.trim(value)})
         |> Repo.update!
-        {:ok, "actualizado!"}
+        {:ok, build_colored_message("actualizado...", "good")}
     end
   end
+  
+  defp build_kv_message(kvs, text, color \\ "") do
+    fields = Enum.map(kvs, fn {key, value} -> %{title: key, value: value, short: false} end)
+    fallback = Enum.map(kvs, fn {key, value} -> "#{key}: #{value}" end) |> Enum.join("/n")
+    {"", %{attachments: Poison.encode!([%{
+                                          fallback: fallback,
+                                          color: color,
+                                          pretext: text,
+                                          fields: fields
+                                        }])}}
+  end
+
+  defp build_colored_message(text, color) do
+    {"", %{attachments: Poison.encode!([%{
+                                          fallback: text,
+                                          color: color,
+                                          text: text,
+                                        }])}}
+  end
+
+
 
   defp clean_key(key) do
     key
