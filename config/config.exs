@@ -12,6 +12,9 @@ config :largo, Largo.Repo,
 
 config :largo, ecto_repos: [Database.Repo]
 
+config :largo, default_message_parameters: %{
+  as_user: true
+}
 
 # redefine in <env>.secret.exs
 config :slack, api_token: ""

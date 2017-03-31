@@ -1,6 +1,8 @@
 defmodule Largo do
   use Slack
 
+  @default_params Application.get_env(:largo, :default_message_parameters)
+
   def handle_connect(slack, state) do
     IO.puts "Connected as #{slack.me.name}"
     {:ok, state}
@@ -14,7 +16,7 @@ defmodule Largo do
   def handle_event(message = %{type: "message"}, slack, state) do
     IO.inspect(message)
     cond do
-      message.user == slack.me.id ->
+      Map.has_key?(message, :user) and message.user== slack.me.id ->
         IO.puts "mensaje ignorado"
         nil #Ignore own messages
       true ->
@@ -36,9 +38,12 @@ defmodule Largo do
   end
 
   def handle_event(_, _, state), do: {:ok, state}
+  def handle_info(_, _, state), do: {:ok, state}
 
-  @responders [Largo.Responders.HelloResponder,
+  @responders [Largo.Responders.DemoResponder,
+               Largo.Responders.HelloResponder,
                Largo.Responders.MemmoryResponder]
+  
 
   defp respond(text, channel, slack) do
     resp = Enum.reduce_while(@responders, "", fn responder, _acc ->
@@ -50,10 +55,27 @@ defmodule Largo do
       end
     end)
     if resp != "" do
-      send_message(resp, channel, slack)
+      do_response(resp, channel, slack)
     end
   end
 
+  defp do_response(resp, channel, slack) when is_binary(resp) do
+    IO.puts("do_response str")
+    IO.inspect(resp)
+    IO.inspect(@default_params)
+    IO.inspect(Application.get_env(:largo, :default_message_parameters))
+    Slack.Web.Chat.post_message(channel, resp, @default_params)
+  end
 
-  def handle_info(_, _, state), do: {:ok, state}
+  defp do_response(resp, channel, slack) when is_list(resp) do
+    IO.puts("do_response list")
+    IO.inspect(resp)
+    Enum.map(resp, &do_response(&1, channel, slack))
+  end
+
+  defp do_response({resp, params}, channel, _slack) when is_binary(resp) and is_map(params) do
+    IO.puts("do_response params")
+    IO.inspect(resp)
+    Slack.Web.Chat.post_message(channel, resp, Map.merge(@default_params, params))
+  end
 end

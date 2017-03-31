@@ -31,6 +31,7 @@ defmodule Largo.Mixfile do
   defp deps do
     [{:ecto, "~> 2.0"},
      {:postgrex, "~> 0.11"},
-     {:slack, "~> 0.11.0"}]
+     {:slack, "~> 0.11.0"},
+     {:poison, "~> 3.0"}]
   end
 end
