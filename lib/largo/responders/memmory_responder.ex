@@ -1,7 +1,8 @@
 defmodule Largo.Responders.MemmoryResponder do
   @behaviour Largo.Responders.Responder
-  alias Largo.{Value, Repo}
-  import Ecto.Query
+  use Database
+  use Amnesia
+  alias Amnesia.Selection
 
   @matchers [
     {~r/Guard[aá]\s+(?<key>.+)[=:](?<value>.+)$/iu, :save},
@@ -35,42 +36,48 @@ defmodule Largo.Responders.MemmoryResponder do
 
   defp get(key) do
     key = clean_key(key)
-    case Ecto.Query.from(v in Value, where: v.key == ^key) |> Repo.one do
-      nil -> {:ok, build_colored_message("No encontré la clave #{key}", "warn")}
-      value -> {:ok, build_kv_message([{value.key, value.value}], "hmmmmmmm", "good")}
+    Amnesia.transaction do
+      case Value.read_at(key, :key) do
+        nil -> {:ok, build_colored_message("No encontré la clave #{key}", "warn")}
+        values -> {:ok, build_kv_message([{hd(values).key, hd(values).value}], "hmmmmmmm", "good")}
+      end
     end
   end
 
   defp delete(key) do
     key = clean_key(key)
-    case Ecto.Query.from(v in Value, where: v.key == ^key) |> Repo.one do
-      nil -> {:ok, build_colored_message("No encontré la clave #{key}", "warning")}
-      value ->
-        case Repo.delete(value) do
-          {:error, _} -> {:ok, build_colored_message("No pude borrar la clave #{key}", "danger")}
-          {:ok, value} -> {:ok, build_colored_message("Borré la clave #{value.key}. Último valor: #{value.value}", "good")}
+    Amnesia.transaction do
+      case Value.read_at(key, :key) do
+        nil -> {:ok, build_colored_message("No encontré la clave #{key}", "warning")}
+        values ->
+          case Value.delete(hd(values)) do
+            :error -> {:ok, build_colored_message("No pude borrar la clave #{key}", "danger")}
+            :ok -> {:ok, build_colored_message("Borré la clave #{hd(values).key}. Último valor: #{hd(values).value}", "good")}
+          end
         end
     end
   end
 
   defp list do
-    msg = Repo.all(Value)
-      |> Enum.map(&{&1.key, &1.value})
-      |> build_kv_message("*hmmmmm*", "good")
-    {:ok, msg}
+    Amnesia.transaction do
+      msg = Value.where(1 == 1) |> Amnesia.Selection.values
+        |> Enum.map(&{&1.key, &1.value})
+        |> build_kv_message("*hmmmmm*", "good")
+      {:ok, msg}
+    end
   end
 
   defp save(key, value) do
     key = clean_key(key)
-    case Repo.get_by(Value, key: key) do
-      nil ->
-        Value.changeset(%Value{}, %{key: key, value: String.trim(value)})
-        |> Repo.insert!
-        {:ok, build_colored_message("guardado...", "good")}
-      db_val ->
-        Value.changeset(db_val, %{value: String.trim(value)})
-        |> Repo.update!
-        {:ok, build_colored_message("actualizado...", "good")}
+    Amnesia.transaction do
+      case Value.read_at(key, :key) do
+        nil ->
+          %Value{key: key, value: String.trim(value)} |> Value.write
+          {:ok, build_colored_message("guardado...", "good")}
+        _ ->
+          %Value{value: String.trim(value)} |> Value.write
+          {:ok, build_colored_message("actualizado...", "good")}
+      end
     end
   end
   

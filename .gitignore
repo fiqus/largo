@@ -21,3 +21,6 @@ erl_crash.dump
 
 *.secret.exs
 mix.lock
+
+# all the Mnesia databases
+Mnesia*

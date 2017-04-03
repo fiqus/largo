@@ -2,16 +2,6 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :largo, Largo.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  database: "largo",
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  port: 15432
-
-config :largo, ecto_repos: [Database.Repo]
-
 config :largo, default_message_parameters: %{
   as_user: true
 }

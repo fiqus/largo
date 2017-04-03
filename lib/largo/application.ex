@@ -9,7 +9,7 @@ defmodule Largo.Application do
     import Supervisor.Spec, warn: false
 
     # Define workers and child supervisors to be supervised
-    default_workers = [ supervisor(Largo.Repo, [])]
+    default_workers = []
 
     slack_workers = if Application.get_env(:largo, :enable_ws_client, true) do
       [worker(Slack.Bot, [Largo, [], Application.get_env(:slack, :api_token)])]

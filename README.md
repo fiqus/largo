@@ -1,19 +1,30 @@
 # Largo
 
-**TODO: Add description**
+Largo is a Slack Integration done in Elixir to store key/values in your Slack chat.
+
+## Dependencies
+You need to install Erlang and Elixir, we strongly recommend:
+http://elixir-lang.org/install.html
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `largo` to your list of dependencies in `mix.exs`:
+1. Install the dependencies:
+`mix deps.get`
 
-```elixir
-def deps do
-  [{:largo, "~> 0.1.0"}]
-end
-```
+2. Copy your Slack API-KEY token in `api_token` under `config/dev.secret.exs`
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/largo](https://hexdocs.pm/largo).
+3. Create the Mnesia database
+`mix amnesia.create -d Database --disk`
 
+4. Run the app!
+`iex -S mix`
+
+## Uses
+You can tag @largo bot in your Slack chat or just chat directly with it.
+
+- @largo guarda foo=bar
+- @largo trae foo
+- @largo guarda hora reunion=10:00 am
+- @largo trae todo
+- @largo borra foo
+- @largo trae todo
